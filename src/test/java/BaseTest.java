@@ -20,11 +20,13 @@ public abstract class BaseTest {
     static ResponseSpecification positiveResponseSpecification;
     static RequestSpecification requestSpecificationWithAuth;
     static ResponseSpecification positiveImageUploadResponseSpecification;
+    static ResponseSpecification negativeImageUploadResponseSpecification;
 
     static Properties properties = new Properties();
     static String token;
     static String username;
     static String clientId;
+    static String IMAGE_URL = "https://i.imgur.com/U40dypo.png";
 
 
     @BeforeAll
@@ -57,7 +59,17 @@ public abstract class BaseTest {
                 .expectContentType(ContentType.JSON)
                 .expectStatusCode(200)
                 .build();
+
+        negativeImageUploadResponseSpecification = new ResponseSpecBuilder()
+                .expectBody("success", is(false))
+                .expectBody("data.error", equalTo("Bad Request"))
+                .expectBody("data.request", equalTo("/3/upload"))
+                .expectBody("data.method", equalTo("POST"))
+                .expectContentType(ContentType.JSON)
+                .expectStatusCode(400)
+                .build();
     }
+
 
 
     private static void getProperties() {

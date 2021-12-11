@@ -1,34 +1,51 @@
+import ru.geekbrains.dto.PostImageResponse;
+import io.restassured.builder.MultiPartSpecBuilder;
+import io.restassured.builder.RequestSpecBuilder;
+import io.restassured.specification.MultiPartSpecification;
+import io.restassured.specification.RequestSpecification;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.File;
 
 import static io.restassured.RestAssured.given;
+import static ru.geekbrains.Endpoints.ADD_FAVORITE;
+import static ru.geekbrains.Endpoints.UPLOAD_IMAGE;
 import static org.hamcrest.CoreMatchers.is;
 
 public class ImageAddFavorite extends BaseTest{
     String uploadedImageId;
+    MultiPartSpecification multiPartSpecWithFileURL;
+    static RequestSpecification requestSpecificationWithAuthAndMultipartImageURL;
+
+    @BeforeEach
+    void beforeTest() {
+
+        multiPartSpecWithFileURL = new MultiPartSpecBuilder(IMAGE_URL)
+                .controlName("image")
+                .build();
+
+
+        requestSpecificationWithAuthAndMultipartImageURL = new RequestSpecBuilder()
+                .addHeader("Authorization", token)
+                .addFormParam("title", "Picture")
+                .addFormParam("type", "url")
+                .addFormParam("description", "This is an 1x1 pixel image.")
+                .addMultiPart(multiPartSpecWithFileURL)
+                .build();
+
+    }
 
     @Test
-    void uploadFilePngTest() {
-        uploadedImageId = given()
-                .headers("Authorization", token)
-                .multiPart("image", new File("src/test/resources/classes-slide-blades.png"))
-                .multiPart("title", "Blade.png")
-                .multiPart("description", "This is an 1x1 pixel image.")
-                .expect()
-                .statusCode(200)
-                .body("data.title", is("Blade.png"))
-                .body("data.description", is("This is an 1x1 pixel image."))
-                .when()
-                .post("https://api.imgur.com/3/upload")
+    void uploadFileURLTest() {
+        uploadedImageId = given(requestSpecificationWithAuthAndMultipartImageURL, positiveResponseSpecification)
+                .post(UPLOAD_IMAGE)
                 .prettyPeek()
                 .then()
                 .extract()
-                .response()
-                .jsonPath()
-                .getString("data.deletehash");
-
+                .body()
+                .as(PostImageResponse.class)
+                .getDataImage().getDeletehash();
     }
 
     @AfterEach
@@ -36,7 +53,7 @@ public class ImageAddFavorite extends BaseTest{
         given()
                 .headers("Authorization", token)
                 .when()
-                .post("https://api.imgur.com/3/image/{imageHash}/favorite", uploadedImageId)
+                .post(ADD_FAVORITE, uploadedImageId)
                 .prettyPeek()
                 .then()
                 .statusCode(200)
