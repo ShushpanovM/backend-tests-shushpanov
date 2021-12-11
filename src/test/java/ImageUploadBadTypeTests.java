@@ -5,7 +5,7 @@ import java.io.File;
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.CoreMatchers.is;
 
-public class ImageUploadBadType extends BaseTest{
+public class ImageUploadBadTypeTests extends BaseTest {
     String uploadedImageId;
 
     @Test
@@ -13,9 +13,9 @@ public class ImageUploadBadType extends BaseTest{
         uploadedImageId = given()
                 .headers("Authorization", token)
                 .multiPart("image", new File("src/test/resources/1.mp4"))
-                .multiPart( "type", "url")
-                .multiPart( "title", "1.mp4")
-                .multiPart( "description", "This is an 1x1 pixel image.")
+                .multiPart("type", "url")
+                .multiPart("title", "1.mp4")
+                .multiPart("description", "This is an 1x1 pixel image.")
                 .expect()
                 .statusCode(400)
                 .body("success", is(false))
@@ -38,9 +38,9 @@ public class ImageUploadBadType extends BaseTest{
         uploadedImageId = given()
                 .headers("Authorization", token)
                 .multiPart("image", "https://i.imgur.com/U40dypo.png")
-                .multiPart( "type", "mp4")
-                .multiPart( "title", "BladeURL")
-                .multiPart( "description", "This is an 1x1 pixel image.")
+                .multiPart("type", "mp4")
+                .multiPart("title", "BladeURL")
+                .multiPart("description", "This is an 1x1 pixel image.")
                 .expect()
                 .statusCode(400)
                 .body("success", is(false))
